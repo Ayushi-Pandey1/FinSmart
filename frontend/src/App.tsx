@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Spending from './pages/Spending';
 import Budgets from './pages/Budgets';
@@ -11,6 +12,8 @@ import Predictions from './pages/Predictions';
 import Eligibility from './pages/Eligibility';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
+import CreditCardChecker from './pages/CreditCardChecker';
+import SavingsGoals from './pages/SavingsGoals';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -32,12 +35,15 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/spending" element={<ProtectedRoute><Spending /></ProtectedRoute>} />
       <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
       <Route path="/predictions" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />
       <Route path="/persona" element={<ProtectedRoute><Persona /></ProtectedRoute>} />
       <Route path="/eligibility" element={<ProtectedRoute><Eligibility /></ProtectedRoute>} />
+      <Route path="/creditcard" element={<ProtectedRoute><CreditCardChecker /></ProtectedRoute>} />
+      <Route path="/savings" element={<ProtectedRoute><SavingsGoals /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />

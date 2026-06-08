@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '../api/client';
 import { useDropzone } from 'react-dropzone';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Plus, Upload, Trash2, X, FileText, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Plus, Upload, Trash2, X, FileText, ArrowUpCircle, ArrowDownCircle, Download } from 'lucide-react';
 
 const EXPENSE_CATEGORIES = [
   'Housing','Food & Groceries','Transport','Entertainment','Dining Out',
@@ -41,16 +41,20 @@ export default function Spending() {
     try {
       const [months, tx, exp, inc] = await Promise.all([
         api.get('/transactions/months'),
-        api.get(`/transactions?month=${month}`),
+        api.get('/transactions'),
         api.get(`/transactions/summary?month=${month}`),
         api.get(`/transactions/income-summary?month=${month}`),
       ]);
       const mList: string[] = months.data;
       if (!mList.includes(month)) mList.unshift(month);
-      setAvailableMonths([...new Set(mList)].sort().reverse());
+      const sorted = [...new Set(mList)].sort().reverse() as string[];
+      setAvailableMonths(sorted);
       setTransactions(tx.data);
       setExpenseSummary(exp.data);
       setIncomeSummary(inc.data);
+      if (tx.data.length === 0 && sorted.length > 0 && sorted[0] !== month) {
+        setSelectedMonth(sorted[0]);
+      }
     } catch {}
     setLoading(false);
   };
@@ -109,6 +113,15 @@ export default function Spending() {
   const totalExpenses = expenseSummary.reduce((s, c) => s + parseFloat(c.total), 0);
   const totalIncome = incomeSummary.reduce((s, c) => s + parseFloat(c.total), 0);
 
+  const handleExport = () => {
+    const link = document.createElement('a');
+    link.href = `http://localhost:3001/api/transactions/export?month=${selectedMonth}`;
+    link.setAttribute('download', `finsmart-${selectedMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -132,7 +145,6 @@ export default function Spending() {
 
       {success && <div className="alert alert-success" style={{ marginBottom: '1rem' }}>{success}</div>}
 
-      {/* Summary cards */}
       <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
         <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -152,7 +164,6 @@ export default function Spending() {
         </div>
       </div>
 
-      {/* Charts */}
       {(expenseSummary.length > 0 || incomeSummary.length > 0) && (
         <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
           <div className="card">
@@ -186,7 +197,6 @@ export default function Spending() {
         </div>
       )}
 
-      {/* CSV Upload */}
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>Import CSV</h3>
         <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: '0.75rem' }}>
@@ -213,7 +223,6 @@ export default function Spending() {
         )}
       </div>
 
-      {/* Transaction table */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <h3 style={{ fontWeight: 700 }}>All Transactions ({filtered.length})</h3>
@@ -225,14 +234,10 @@ export default function Spending() {
             ))}
           </div>
         </div>
-
         {loading ? (
           <div className="loading-center"><div className="spinner" /></div>
         ) : filtered.length === 0 ? (
-          <div className="empty-state">
-            <FileText size={40} />
-            <p>No transactions found</p>
-          </div>
+          <div className="empty-state"><FileText size={40} /><p>No transactions found</p></div>
         ) : (
           <div className="table-wrapper">
             <table>
@@ -262,7 +267,6 @@ export default function Spending() {
         )}
       </div>
 
-      {/* Add Modal */}
       {showAdd && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAdd(false)}>
           <div className="modal">
@@ -270,13 +274,10 @@ export default function Spending() {
               <h3>{txType === 'income' ? '↑ Log Income' : '↓ Add Expense'}</h3>
               <button className="btn btn-ghost btn-sm" onClick={() => setShowAdd(false)}><X size={18} /></button>
             </div>
-
-            {/* Type toggle */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
               <button className={`btn btn-sm ${txType === 'expense' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTxType('expense')}>↓ Expense</button>
               <button className={`btn btn-sm ${txType === 'income' ? 'btn-success' : 'btn-secondary'}`} onClick={() => setTxType('income')}>↑ Income</button>
             </div>
-
             {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="form-group">

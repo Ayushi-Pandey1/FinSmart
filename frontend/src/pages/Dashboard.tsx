@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { TrendingUp, Receipt, PiggyBank, Star, Brain, Plus, ChevronLeft, ChevronRight, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { TrendingUp, Receipt, PiggyBank, Star, Brain, Plus, ChevronLeft, ChevronRight, ArrowUpCircle, ArrowDownCircle, GraduationCap } from 'lucide-react';
 
 const COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#94a3b8'];
 const CAT_COLORS: Record<string, string> = {
@@ -44,7 +44,6 @@ export default function Dashboard() {
         api.get(`/budgets/compliance?month=${month}`),
         api.get(`/transactions?month=${month}`),
       ]);
-      // Ensure selected month is in list
       const mList: string[] = months.data;
       if (!mList.includes(month)) mList.unshift(month);
       if (!mList.includes(todayMonth)) mList.unshift(todayMonth);
@@ -71,7 +70,6 @@ export default function Dashboard() {
   const net = totalIncome - totalSpend;
   const savingsRate = totalIncome > 0 ? (net / totalIncome) * 100 : 0;
 
-  // Build income vs expense trend (last 6 months)
   const allMonths = [...new Set(trend.map((t: any) => t.month))].sort().slice(-6);
   const trendData = allMonths.map(m => {
     const expRow = trend.find((r: any) => r.month === m && r.transaction_type === 'expense');
@@ -90,7 +88,6 @@ export default function Dashboard() {
 
   return (
     <div>
-      {/* Header with month navigation */}
       <div className="page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Welcome back, {user?.firstName} 👋</h1>
@@ -122,6 +119,13 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)', border: '1px solid #c4b5fd', borderRadius: 10, padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <GraduationCap size={18} color="#7c3aed" />
+        <div style={{ fontSize: 13, color: '#5b21b6' }}>
+          <strong>FinSmart for Students & Young Adults</strong> — track spending, set savings goals, check credit cards, and build your financial profile. All features are tailored to student income patterns and UK providers.
+        </div>
+      </div>
+
       {!isCurrentMonth && (
         <div className="alert alert-info" style={{ marginBottom: '1.25rem' }}>
           📅 Viewing <strong>{monthLabel(selectedMonth)}</strong> — historical snapshot
@@ -132,7 +136,6 @@ export default function Dashboard() {
         <div className="loading-center"><div className="spinner" /><span>Loading...</span></div>
       ) : (
         <>
-          {/* Stat cards */}
           <div className="grid-4" style={{ marginBottom: '1.5rem' }}>
             <div className="stat-card">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -183,29 +186,22 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Charts */}
           <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
-            {/* Income vs Expenses trend */}
-            <div className="card">
+            {trendData.length > 0 && <div className="card">
               <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Income vs Expenses Trend</h3>
-              {trendData.length === 0 ? (
-                <div className="empty-state"><Star size={36} /><p>No historical data yet</p></div>
-              ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} />
-                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={v => `£${v}`} />
-                    <Tooltip formatter={(v: any) => `£${v}`} />
-                    <Legend />
-                    <Bar dataKey="income" fill="#10b981" name="Income" radius={[4,4,0,0]} />
-                    <Bar dataKey="expenses" fill="#ef4444" name="Expenses" radius={[4,4,0,0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} />
+                  <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={v => `£${v}`} />
+                  <Tooltip formatter={(v: any) => `£${v}`} />
+                  <Legend />
+                  <Bar dataKey="income" fill="#10b981" name="Income" radius={[4,4,0,0]} />
+                  <Bar dataKey="expenses" fill="#ef4444" name="Expenses" radius={[4,4,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>}
 
-            {/* Expense breakdown pie */}
             <div className="card">
               <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Expense Breakdown</h3>
               {expenseSummary.length === 0 ? (
@@ -234,9 +230,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Income sources + Recent transactions */}
           <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
-            {/* Income sources */}
             <div className="card">
               <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Income Sources</h3>
               {incomeSummary.length === 0 ? (
@@ -267,7 +261,6 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Recent transactions */}
             <div className="card">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <h3 style={{ fontWeight: 700 }}>Recent Transactions</h3>
@@ -298,13 +291,14 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Quick actions */}
           <div className="card">
             <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Quick Actions</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
               {[
                 { to: '/spending', icon: Receipt, label: 'Add / Import Transactions', color: '#6366f1' },
                 { to: '/budgets', icon: PiggyBank, label: 'Set Monthly Budgets', color: '#10b981' },
+                { to: '/savings', icon: PiggyBank, label: 'Savings Goals', color: '#059669' },
+                { to: '/creditcard', icon: Brain, label: 'Credit Card Checker', color: '#7c3aed' },
                 { to: '/persona', icon: Brain, label: 'Generate AI Persona', color: '#8b5cf6' },
                 { to: '/chat', icon: Star, label: 'Chat with FinSmart AI', color: '#f59e0b' },
               ].map(item => (
