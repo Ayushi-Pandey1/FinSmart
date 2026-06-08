@@ -222,4 +222,37 @@ router.get('/category-trend', auth, async (req, res) => {
   }
 });
 
+
+// GET /api/transactions/export — download CSV
+router.get('/export', auth, async (req, res) => {
+  try {
+    const { month } = req.query;
+    let query = 'SELECT * FROM transactions WHERE user_id = $1';
+    const params = [req.user.userId];
+    if (month) {
+      query += ` AND TO_CHAR(transaction_date, 'YYYY-MM') = $2`;
+      params.push(month);
+    }
+    query += ' ORDER BY transaction_date DESC';
+    const result = await pool.query(query, params);
+
+    const rows = result.rows;
+    const headers = ['id','description','amount','category','transaction_type','income_source','transaction_date','created_at'];
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => headers.map(h => {
+        const val = r[h] == null ? '' : String(r[h]);
+        return val.includes(',') ? `"${val}"` : val;
+      }).join(','))
+    ].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="finsmart-transactions${month ? '-' + month : ''}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Export failed' });
+  }
+});
+
 module.exports = router;
