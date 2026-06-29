@@ -66,7 +66,15 @@ export default function Eligibility() {
 
       {/* Products grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1rem' }}>
-        {filtered?.map((r: any) => {
+        {filtered?.length === 0 ? (
+          <div className="card">
+            <div className="empty-state">
+              <Star size={36} />
+              <h3>No eligible products found</h3>
+              <p>Try another product type or update your financial profile.</p>
+            </div>
+          </div>
+        ) : filtered?.map((r: any) => {
           const Icon = PRODUCT_ICONS[r.product.type] || Star;
           const color = PRODUCT_COLORS[r.product.type] || '#6366f1';
           return (
